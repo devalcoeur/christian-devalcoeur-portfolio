@@ -1,0 +1,25 @@
+name: Update selected portfolio previews
+on:
+  push:
+    paths:
+      - '.github/workflows/update-portfolio-posters.yml'
+permissions:
+  contents: write
+jobs:
+  posters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate approved thumbnails
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -ss 00:00:55 -i assets/showreel-extrait-02.mp4 -frames:v 1 -vf "scale=800:450:flags=lanczos,eq=contrast=1.06,unsharp=5:5:0.4" -q:v 3 -update 1 assets/showreel-extrait-02-poster.jpg
+          ffmpeg -hide_banner -loglevel error -y -ss 00:01:25 -i assets/showreel-extrait-03.mp4 -frames:v 1 -vf "scale=800:450:flags=lanczos,eq=contrast=1.06,unsharp=5:5:0.4" -q:v 3 -update 1 assets/showreel-extrait-03-poster.jpg
+      - name: Commit thumbnails
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/showreel-extrait-02-poster.jpg assets/showreel-extrait-03-poster.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "Update portfolio showreel preview images"
+            git push
+          fi
