@@ -1,4 +1,5 @@
 name: Update selected portfolio previews
+# One-time approved still-frame replacement
 on:
   push:
     paths:
