@@ -1,0 +1,40 @@
+name: Refresh approved showreel posters
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refresh-showreel-posters-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-posters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out portfolio
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Create the two approved frame images
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v ffmpeg
+          ffmpeg -hide_banner -loglevel error -y -ss 79.5 -i assets/showreel-extrait-01.mp4 -vf 'crop=628:374:6:39,scale=1280:720,eq=contrast=1.07,unsharp=3:3:0.5' -frames:v 1 -q:v 3 -update 1 assets/showreel-extrait-01-poster.jpg
+          ffmpeg -hide_banner -loglevel error -y -ss 16 -i assets/showreel-extrait-04.mp4 -filter_complex '[0:v]split=2[bgsrc][fgsrc];[bgsrc]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,boxblur=luma_radius=30:luma_power=2,eq=brightness=-0.15[bg];[fgsrc]scale=720:720[fg];[bg][fg]overlay=x=(W-w)/2:y=0:shortest=1[out]' -map '[out]' -frames:v 1 -q:v 3 -update 1 assets/showreel-extrait-04-poster.jpg
+          test -s assets/showreel-extrait-01-poster.jpg
+          test -s assets/showreel-extrait-04-poster.jpg
+
+      - name: Publish posters and remove one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/showreel-extrait-01-poster.jpg assets/showreel-extrait-04-poster.jpg
+          git rm .github/workflows/refresh-showreel-posters-once.yml
+          git commit -m "Update showreel posters 01 and 04 to approved frames"
+          git push origin HEAD:main
