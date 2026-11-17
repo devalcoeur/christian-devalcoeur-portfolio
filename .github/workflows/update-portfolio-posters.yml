@@ -4,10 +4,13 @@ on:
   push:
     paths:
       - '.github/workflows/update-portfolio-posters.yml'
+  issues:
+    types: [opened]
 permissions:
   contents: write
 jobs:
   posters:
+    if: github.event_name != 'issues' || github.event.issue.title == 'Generate approved showreel posters (automated)'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
