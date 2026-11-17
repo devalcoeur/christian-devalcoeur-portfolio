@@ -4,16 +4,17 @@ on:
   push:
     paths:
       - '.github/workflows/update-portfolio-posters.yml'
-  issues:
-    types: [opened]
 permissions:
   contents: write
 jobs:
   posters:
-    if: github.event_name != 'issues' || github.event.issue.title == 'Generate approved showreel posters (automated)'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
       - name: Generate approved thumbnails
         run: |
           ffmpeg -hide_banner -loglevel error -y -ss 00:00:55 -i assets/showreel-extrait-02.mp4 -frames:v 1 -vf "scale=800:450:flags=lanczos,eq=contrast=1.06,unsharp=5:5:0.4" -q:v 3 -update 1 assets/showreel-extrait-02-poster.jpg
